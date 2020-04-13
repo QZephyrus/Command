@@ -1,11 +1,6 @@
-#include "../lib/Compression_Trace_char.h"
-#include "../lib/DataBase.h"
-#include <fstream>
-#include <iostream>
-#include <unordered_map>
+#include "../lib/command.h"
 
 using namespace std;
-
 vector<point2> readTraceFromMysql(string host, string user, string passwd,
                                   string DBName, string TableName) {
   DataBase DB;

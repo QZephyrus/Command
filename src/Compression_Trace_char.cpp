@@ -80,7 +80,7 @@ vector<point2> Compression_OW_Relat(const vector<point2> &trace,
                                     double distance, double time) {
   point2 pt1, pt2;
   int row = trace.size();
-  int n;
+  int n = 0;
   time_duration t = seconds(time * 2);
   vector<point2> retrace;
   for (int i = 0; i < row; i++) {
