@@ -48,16 +48,17 @@ public:
   double Y;
   char Floor[5];
   int MapMark;
-  char time[19];
-  bool isCompress = true;
+  char time[20];
+  bool isCompress;
   point2(int PerID, short PerModule, string DevID, double XF, double YF,
          string FloorF, int MMark, string t)
-      : PersonID(PerID), PersonModule(PerModule), X(XF), Y(YF), MapMark(MMark) {
+      : PersonID(PerID), PersonModule(PerModule), X(XF), Y(YF), MapMark(MMark),
+        isCompress(true) {
     strcpy(DeviceID, DevID.c_str());
     strcpy(time, t.c_str());
     strcpy(Floor, FloorF.c_str());
   };
-  point2(void){};
+  point2(void) : isCompress(true){};
   void getPoint(double x, double y, string Time) {
     X = x;
     Y = y;
@@ -74,5 +75,10 @@ public:
     Y = y;
     strcpy(time, t.c_str());
     strcpy(Floor, FloorF.c_str());
+    isCompress = true;
+  };
+  bool same(const point2 &p) {
+    return (PersonID == p.PersonID && PersonModule == p.PersonModule &&
+            strcmp(time, p.time) == 0);
   };
 };

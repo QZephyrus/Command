@@ -349,6 +349,7 @@ vector<point2> DataBase::selectTrace2(const string &table) {
     // temp.Floor = row[5];
     temp.MapMark = atoi(row[6]);
     strcpy(temp.time, row[7]);
+    temp.isCompress = true;
     // temp.time = row[7];
     ret.push_back(temp);
   }
