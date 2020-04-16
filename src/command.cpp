@@ -13,6 +13,7 @@ vector<point2> readTraceFromMysql(string host, string user, string passwd,
     return {};
   }
   vector<point2> rec = DB.selectTrace2(TableName);
+  DB.disconnect();
   return rec;
 }
 unordered_map<int, vector<point2>> compression(vector<point2> org_trace,
@@ -61,6 +62,7 @@ void saveToFile(string filename,
     }
   }
   file.close();
+  return;
 }
 unordered_map<int, vector<point2>> readFromFile(string filename) {
   fstream infile;
@@ -86,7 +88,53 @@ unordered_map<int, vector<point2>> readFromFile(string filename) {
   infile.close();
   return comtrace_map;
 }
-
+void saveToMySQL(string host, string user, string passwd, string DBName,
+                 string TableName, unordered_map<int, vector<point2>> &trace) {
+  DataBase DB;
+  if (DB.connect(host, user, passwd, DBName) != true) {
+    cout << "connect Error" << endl;
+    return;
+  }
+  if (DB.useDB(DBName) != true) {
+    cout << "use Database Error" << endl;
+    return;
+  }
+  if (!DB.createTB(
+          TableName,
+          "TraceID int UNSIGNED NOT NULL AUTO_INCREMENT,PersonID bigint "
+          "NULL,PersonModule tinyint NULL,DeviceID varchar(255) NULL,X double "
+          "NULL,Y double NULL,Floor char(4) NULL,MapMark bigint NULL,Time "
+          "datetime NULL,PRIMARY KEY (TraceID)")) {
+    cout << "creat Table Error" << endl;
+    return;
+  }
+  bool frist = true;
+  string value;
+  for (auto m : trace) {
+    for (auto v : m.second) {
+      if (frist) {
+        value = "(null," + to_string(v.PersonID) + ", " +
+                to_string(v.PersonModule) + ", '" + v.DeviceID + "', " +
+                to_string(v.X) + ", " + to_string(v.Y) + ", '" + v.Floor +
+                "', " + to_string(v.MapMark) + ", '" + v.time + "')";
+        frist = false;
+      } else {
+        value = value + ",(null," + to_string(v.PersonID) + ", " +
+                to_string(v.PersonModule) + ", '" + v.DeviceID + "', " +
+                to_string(v.X) + ", " + to_string(v.Y) + ", '" + v.Floor +
+                "', " + to_string(v.MapMark) + ", '" + v.time + "')";
+      }
+    }
+  }
+  if (!DB.insertItem(TableName, value)) {
+    cout << "insert Traces error" << endl;
+    return;
+  }
+  // cout << "insert success!" << endl;
+  DB.disconnect();
+  return;
+}
+/*
 int main() {
 
   string host = "localhost";
@@ -102,49 +150,16 @@ int main() {
       readTraceFromMysql(host, user, passwd, DBName, TableName);
   cout << "Orgin Traces" << endl;
   cout << org_trace.size() << endl;
-  for (auto v : org_trace) {
-    cout << v.PersonID << "," << v.PersonModule << "," << v.DeviceID << ","
-         << v.X << "," << v.Y << "," << v.Floor << "," << v.MapMark << ","
-         << v.time << endl;
-  }
 
   unordered_map<int, vector<point2>> com_trace =
       compression(org_trace, dist, 2);
-  cout << "Compression Traces" << endl;
-  cout << com_trace.size() << endl;
-  for (auto m : com_trace) {
-    cout << m.first << "," << m.second.size() << endl;
-    for (auto v : m.second) {
-      cout << v.PersonID << "," << v.PersonModule << "," << v.DeviceID << ","
-           << v.X << "," << v.Y << "," << v.Floor << "," << v.MapMark << ","
-           << v.time << endl;
-    }
-  }
 
   saveToFile(FileName, com_trace);
+
   unordered_map<int, vector<point2>> read_trace = readFromFile(FileName);
-  cout << "Read Traces" << endl;
-  cout << read_trace.size() << endl;
-  for (auto m : read_trace) {
-    cout << m.first << "," << m.second.size() << endl;
-    for (auto v : m.second) {
-      cout << v.PersonID << "," << v.PersonModule << "," << v.DeviceID << ","
-           << v.X << "," << v.Y << "," << v.Floor << "," << v.MapMark << ","
-           << v.time << endl;
-    }
-  }
 
-  unordered_map<int, vector<point2>> res_trace = restore(com_trace, time);
-  cout << "Restore Traces" << endl;
-  cout << res_trace.size() << endl;
-  for (auto m : res_trace) {
-    cout << m.first << "," << m.second.size() << endl;
-    for (auto v : m.second) {
-      cout << v.PersonID << "," << v.PersonModule << "," << v.DeviceID << ","
-           << v.X << "," << v.Y << "," << v.Floor << "," << v.MapMark << ","
-           << v.time << endl;
-    }
-  }
-
+  unordered_map<int, vector<point2>> res_trace = restore(read_trace, time);
+  string TableNmae2 = "Trace202106";
+  saveToMySQL(host, user, passwd, DBName, TableNmae2, res_trace);
   return 0;
-}
+}*/
