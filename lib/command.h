@@ -13,5 +13,5 @@ restore(unordered_map<int, vector<point2>> comtrace_map, double time);
 void saveToFile(string filename,
                 unordered_map<int, vector<point2>> comtrace_map);
 unordered_map<int, vector<point2>> readFromFile(string filename);
-void saveToMySQL(string host, string user, string passwd, string DBName,
+bool saveToMySQL(string host, string user, string passwd, string DBName,
                  string TableName, unordered_map<int, vector<point2>> &trace);

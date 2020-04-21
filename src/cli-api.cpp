@@ -2,19 +2,30 @@
 #include <iostream>
 using namespace std;
 
-void Compression(string host, string user, string passwd, string DBName,
+bool Compression(string host, string user, string passwd, string DBName,
                  string TableName, string filename, double dist, double time) {
   vector<point2> trace =
       readTraceFromMysql(host, user, passwd, DBName, TableName);
+  if (trace.empty()) {
+    return false;
+  }
   unordered_map<int, vector<point2>> comtrace = compression(trace, dist, time);
+
   saveToFile(filename, comtrace);
+  return true;
 };
 
-void Restore(string host, string user, string passwd, string DBName,
+bool Restore(string host, string user, string passwd, string DBName,
              string TableName, string filename, double time) {
   unordered_map<int, vector<point2>> readtrace = readFromFile(filename);
+  if (readtrace.empty()) {
+    return false;
+  }
   unordered_map<int, vector<point2>> restrace = restore(readtrace, time);
-  saveToMySQL(host, user, passwd, DBName, TableName, restrace);
+
+  bool flag;
+  flag = saveToMySQL(host, user, passwd, DBName, TableName, restrace);
+  return flag;
 };
 
 int main(int argc, char *argv[]) {
@@ -42,6 +53,7 @@ int main(int argc, char *argv[]) {
   string type = argv[i];
   if (type == "compress") {
     bool flag_tb = false;
+    bool flag_fn = false;
     if (i + 1 == argc) {
       cout
           << "You need to enter more info and you can use help for more option."
@@ -55,7 +67,7 @@ int main(int argc, char *argv[]) {
           cout << "Lack Input Host!" << endl;
           return 0;
         }
-        host == argv[j];
+        host = argv[j];
       } else if (strcmp(argv[j], "-u") == 0) {
         j++;
         if (j == argc) {
@@ -84,9 +96,12 @@ int main(int argc, char *argv[]) {
           return 0;
         }
         TableName = argv[j];
-        FileName = TableName + ".dat";
+        if (!flag_fn) {
+          // FileName = TableName + ".dat";
+          FileName = TableName;
+        }
         flag_tb = true;
-        cout << "tablename" << endl;
+        // cout << "tablename" << endl;
       } else if (strcmp(argv[j], "-f") == 0) {
         j++;
         if (j == argc) {
@@ -94,24 +109,36 @@ int main(int argc, char *argv[]) {
           return 0;
         }
         FileName = argv[j];
-        FileName = FileName;
-        cout << "Filename" << endl;
+        flag_fn = true;
+        // FileName = FileName;
+        // cout << "Filename" << endl;
       } else if (strcmp(argv[j], "-t") == 0) {
         j++;
         if (j == argc) {
           cout << "Lack Input time interval!" << endl;
           return 0;
         }
-        time = atof(argv[j]);
+        stringstream sin(argv[j]);
+        char c;
+        if (!(sin >> time) || sin >> c) {
+          cout << "Input time interval [" << argv[j] << "] not Number!" << endl;
+          return 0;
+        }
       } else if (strcmp(argv[j], "-d") == 0) {
         j++;
         if (j == argc) {
           cout << "Lack Input time distance!" << endl;
           return 0;
         }
-        dist = atof(argv[j]);
+        stringstream sin(argv[j]);
+        char c;
+        if (!(sin >> dist) || sin >> c) {
+          cout << "Input time distance [" << argv[j] << "] not Number!" << endl;
+          return 0;
+        }
+        // dist = atof(argv[j]);
       } else {
-        cout << "Error input type " << argv[j] << " in compress!" << endl;
+        cout << "Error input type [" << argv[j] << "] in compress!" << endl;
         cout << "You can use help for more options." << endl;
         return 0;
       }
@@ -124,7 +151,7 @@ int main(int argc, char *argv[]) {
       cout << "Mysql user:" + user << endl;
       cout << "Mysql password:" + passwd << endl;
       cout << "Database:" + DBName << endl;
-      cout << "Table:" + DBName << endl;
+      cout << "Table:" + TableName << endl;
       cout << "compression filename:" << FileName << endl;
       cout << "compression distance:" << dist << endl;
       cout << "compression time interval:" << time << " second" << endl;
@@ -132,16 +159,20 @@ int main(int argc, char *argv[]) {
       string temp;
       cin >> temp;
       if (temp == "Y") {
-        Compression(host, user, passwd, DBName, TableName, FileName, dist,
-                    time);
-        cout << "Compression complete" << endl;
+        bool flag_com = Compression(host, user, passwd, DBName, TableName,
+                                    FileName, dist, time);
+        if (flag_com) {
+          cout << "Compression complete" << endl;
+        } else {
+          cout << "Compression false" << endl;
+        }
       } else {
         cout << "Compression Cancel" << endl;
-        return 0;
       }
     }
   } else if (type == "restore") {
     bool flag_fn = false;
+    bool flag_tb = false;
     for (int j = i + 1; j < argc; j++) {
       if (strcmp(argv[j], "-h") == 0) {
         j++;
@@ -149,7 +180,7 @@ int main(int argc, char *argv[]) {
           cout << "Lack Input Host!" << endl;
           return 0;
         }
-        host == argv[j];
+        host = argv[j];
       } else if (strcmp(argv[j], "-u") == 0) {
         j++;
         if (j == argc) {
@@ -178,6 +209,7 @@ int main(int argc, char *argv[]) {
           return 0;
         }
         TableName = argv[j];
+        flag_tb = true;
       } else if (strcmp(argv[j], "-f") == 0) {
         j++;
         if (j == argc) {
@@ -185,8 +217,13 @@ int main(int argc, char *argv[]) {
           return 0;
         }
         FileName = argv[j];
-        TableName = argv[j];
-        TableName = TableName.substr(0, TableName.length() - 4);
+        if (!flag_tb) {
+          TableName = argv[j];
+          int pos = TableName.find_last_of('/');
+          TableName = TableName.substr(pos + 1);
+          pos = TableName.find_last_of('.');
+          TableName = TableName.substr(0, pos);
+        }
         flag_fn = true;
       } else if (strcmp(argv[j], "-t") == 0) {
         j++;
@@ -194,9 +231,15 @@ int main(int argc, char *argv[]) {
           cout << "Lack Input time interval!" << endl;
           return 0;
         }
-        time = atof(argv[j]);
+        stringstream sin(argv[j]);
+        char c;
+        if (!(sin >> time) || sin >> c) {
+          cout << "Input time interval [" << argv[j] << "] not Number!" << endl;
+          return 0;
+        }
+        // time = atof(argv[j]);
       } else {
-        cout << "Error input type " << argv[j] << " in restore!" << endl;
+        cout << "Error input type [" << argv[j] << "] in restore!" << endl;
         cout << "You can use help for more options." << endl;
         return 0;
       }
@@ -205,22 +248,26 @@ int main(int argc, char *argv[]) {
       cout << "No Restore filename Input" << endl;
     } else {
       cout << "Please confirm the traces info" << endl;
-      cout << "Mysql host:" + host << endl;
-      cout << "Mysql user:" + user << endl;
-      cout << "Mysql password:" + passwd << endl;
-      cout << "Restore Database:" + DBName << endl;
-      cout << "Restore Table:" + TableName << endl;
-      cout << "Traces filename:" << FileName << endl;
-      cout << "Restore time interval:" << time << " second" << endl;
+      cout << "Mysql host: " + host << endl;
+      cout << "Mysql user: " + user << endl;
+      cout << "Mysql password: " + passwd << endl;
+      cout << "Restore Database: " + DBName << endl;
+      cout << "Restore Table: " + TableName << endl;
+      cout << "Traces filename: " << FileName << endl;
+      cout << "Restore time interval: " << time << " second" << endl;
       cout << "Should we continue restore(Y/N):";
       string temp;
       cin >> temp;
       if (temp == "Y") {
-        Restore(host, user, passwd, DBName, TableName, FileName, time);
-        cout << "Restore complete" << endl;
+        bool flag_res =
+            Restore(host, user, passwd, DBName, TableName, FileName, time);
+        if (flag_res) {
+          cout << "Restore complete" << endl;
+        } else {
+          cout << "Restore false" << endl;
+        }
       } else {
         cout << "Restore Cancel" << endl;
-        return 0;
       }
     }
   } else if (type == "help") {
@@ -252,7 +299,6 @@ int main(int argc, char *argv[]) {
     cout << argv[i] << endl;
     cout << "Error input type " << argv[0] << "!" << endl;
     cout << "You can use help for more options." << endl;
-    return 0;
   }
   return 0;
 }

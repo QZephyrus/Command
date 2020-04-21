@@ -5,14 +5,24 @@ vector<point2> readTraceFromMysql(string host, string user, string passwd,
                                   string DBName, string TableName) {
   DataBase DB;
   if (DB.connect(host, user, passwd, DBName) != true) {
-    cout << "connect Error" << endl;
+    cout << "Connect to [" << host
+         << "] Error,please check host user password and databaseName!" << endl;
+    DB.disconnect();
     return {};
   }
   if (DB.useDB(DBName) != true) {
-    cout << "use Database Error" << endl;
+    cout << "use Database [" << DBName
+         << "] Error,please check the database name!" << endl;
+    DB.disconnect();
     return {};
   }
   vector<point2> rec = DB.selectTrace2(TableName);
+  if (rec.empty()) {
+    cout << "select traces from Table [" << TableName
+         << "] Error,please check the Table name!" << endl;
+    DB.disconnect();
+    return {};
+  }
   DB.disconnect();
   return rec;
 }
@@ -44,11 +54,14 @@ unordered_map<int, vector<point2>> compression(vector<point2> org_trace,
 unordered_map<int, vector<point2>>
 restore(unordered_map<int, vector<point2>> comtrace_map, double time) {
   unordered_map<int, vector<point2>> restrace_map;
+  // int i=0;
   for (auto v : comtrace_map) {
     vector<point2> restemp;
+    //  i+=v.second.size();
     restemp = Restore_OW(v.second, time);
     restrace_map.insert(pair<int, vector<point2>>(v.first, restemp));
   }
+  // cout<<i<<endl;
   return restrace_map;
 }
 
@@ -64,15 +77,40 @@ void saveToFile(string filename,
   file.close();
   return;
 }
+
 unordered_map<int, vector<point2>> readFromFile(string filename) {
   fstream infile;
   unordered_map<int, vector<point2>> comtrace_map;
   unordered_map<int, vector<point2>>::iterator getmap;
   infile.open(filename, ios::in | ios::binary);
-  point2 p, pt;
-  while (!infile.eof()) {
-    infile.read((char *)&p, sizeof(p));
-    if (!p.same(pt)) {
+  if (!infile) {
+    cout << "no such file,please check the file name[" << filename << "]!"
+         << endl;
+    return {};
+  }
+  // point2 p, pt;
+  point2 p;
+  try {
+    // while (!infile.eof()) {
+    // cout << 1 << endl;
+    //  infile.read((char *)&p, sizeof(p));
+    //  if (!p.same(pt)) {
+    //    getmap = comtrace_map.find(p.PersonID * 10 + p.PersonModule);
+    //    if (getmap == comtrace_map.end()) {
+    //      vector<point2> temp;
+    //      temp.push_back(p);
+    //      comtrace_map.insert(pair<int, vector<point2>>(
+    //          (p.PersonID * 10 + p.PersonModule), temp));
+    //    } else {
+    //      getmap->second.push_back(p);
+    //    }
+    //    pt = p;
+    //  }
+    //}
+    while (infile.read((char *)&p, sizeof(p))) {
+      if (infile.eof()) {
+        break;
+      }
       getmap = comtrace_map.find(p.PersonID * 10 + p.PersonModule);
       if (getmap == comtrace_map.end()) {
         vector<point2> temp;
@@ -82,22 +120,28 @@ unordered_map<int, vector<point2>> readFromFile(string filename) {
       } else {
         getmap->second.push_back(p);
       }
-      pt = p;
     }
+  } catch (std::bad_alloc) {
+    cout << " read file [" << filename << "] Error please confirm!" << endl;
+    exit({});
   }
   infile.close();
   return comtrace_map;
 }
-void saveToMySQL(string host, string user, string passwd, string DBName,
+bool saveToMySQL(string host, string user, string passwd, string DBName,
                  string TableName, unordered_map<int, vector<point2>> &trace) {
   DataBase DB;
   if (DB.connect(host, user, passwd, DBName) != true) {
-    cout << "connect Error" << endl;
-    return;
+    cout << "Connect to [" << host
+         << "] Error,please check host user password and databaseName!" << endl;
+    DB.disconnect();
+    return false;
   }
   if (DB.useDB(DBName) != true) {
-    cout << "use Database Error" << endl;
-    return;
+    cout << "use Database [" << DBName
+         << "] Error,please check the database name!" << endl;
+    DB.disconnect();
+    return false;
   }
   if (!DB.createTB(
           TableName,
@@ -106,7 +150,8 @@ void saveToMySQL(string host, string user, string passwd, string DBName,
           "NULL,Y double NULL,Floor char(4) NULL,MapMark bigint NULL,Time "
           "datetime NULL,PRIMARY KEY (TraceID)")) {
     cout << "creat Table Error" << endl;
-    return;
+    DB.disconnect();
+    return false;
   }
   bool frist = true;
   string value;
@@ -127,39 +172,11 @@ void saveToMySQL(string host, string user, string passwd, string DBName,
     }
   }
   if (!DB.insertItem(TableName, value)) {
-    cout << "insert Traces error" << endl;
-    return;
+    cout << "Insert Traces error please confirm the file!" << endl;
+    exit(0);
+    return false;
   }
   // cout << "insert success!" << endl;
   DB.disconnect();
-  return;
+  return true;
 }
-/*
-int main() {
-
-  string host = "localhost";
-  string user = "root";
-  string passwd = "zenos";
-  string DBName = "traces";
-  string TableName = "Trace202004";
-  string FileName = "test.dat";
-  double dist = 10;
-  double time = 2;
-
-  vector<point2> org_trace =
-      readTraceFromMysql(host, user, passwd, DBName, TableName);
-  cout << "Orgin Traces" << endl;
-  cout << org_trace.size() << endl;
-
-  unordered_map<int, vector<point2>> com_trace =
-      compression(org_trace, dist, 2);
-
-  saveToFile(FileName, com_trace);
-
-  unordered_map<int, vector<point2>> read_trace = readFromFile(FileName);
-
-  unordered_map<int, vector<point2>> res_trace = restore(read_trace, time);
-  string TableNmae2 = "Trace202106";
-  saveToMySQL(host, user, passwd, DBName, TableNmae2, res_trace);
-  return 0;
-}*/

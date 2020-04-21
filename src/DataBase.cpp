@@ -36,7 +36,7 @@ bool DataBase::connect(const string host, const string user,
   }
   if (!mysql_real_connect(sql, host.c_str(), user.c_str(), passwd.c_str(),
                           database.c_str(), 0, nullptr, 0)) {
-    cout << "connect error!" << endl;
+    // cout << "connect error!" << endl;
     return false;
   }
   if (_FZIDT_DB_DEBUG) {
@@ -54,7 +54,7 @@ bool DataBase::connect(const string host, const string user,
   }
   if (!mysql_real_connect(sql, host.c_str(), user.c_str(), passwd.c_str(),
                           database.c_str(), 0, nullptr, 0)) {
-    cout << "connect error!" << endl;
+    // cout << "connect error!" << endl;
     return false;
   }
   if (_FZIDT_DB_DEBUG) {
@@ -212,7 +212,9 @@ vector<vector<string>> DataBase::selectItem(const string &table,
   string str = "select " + value + " from " + table;
 
   if (mysql_query(sql, str.c_str())) {
-    cout << str + " error!" << endl;
+    if (_FZIDT_DB_DEBUG) {
+      cout << str + " error!" << endl;
+    }
     return {};
   }
 
@@ -239,7 +241,9 @@ vector<vector<string>> DataBase::selectItem(const string &table,
   string str = "select " + value + " from " + table + " where " + limits;
 
   if (mysql_query(sql, str.c_str())) {
-    cout << str + " error!" << endl;
+    if (_FZIDT_DB_DEBUG) {
+      cout << str + " error!" << endl;
+    }
     return {};
   }
 
@@ -265,7 +269,9 @@ vector<vector<string>> DataBase::selectItem(const string &sentence) {
 
   if (mysql_query(sql, str.c_str())) {
     // cout << "select error!" << endl;
-    cout << str + " error!" << endl;
+    if (_FZIDT_DB_DEBUG) {
+      cout << str + " error!" << endl;
+    }
     return {};
   }
 
@@ -295,7 +301,9 @@ vector<point> DataBase::selectTrace(const string &table) {
       table;
 
   if (mysql_query(sql, str.c_str())) {
-    cout << str + " error!" << endl;
+    if (_FZIDT_DB_DEBUG) {
+      cout << str + " error!" << endl;
+    }
     return {};
   }
 
@@ -331,7 +339,9 @@ vector<point2> DataBase::selectTrace2(const string &table) {
       table;
 
   if (mysql_query(sql, str.c_str())) {
-    cout << str + " error!" << endl;
+    if (_FZIDT_DB_DEBUG) {
+      cout << str + " error!" << endl;
+    }
     return {};
   }
 
@@ -380,7 +390,9 @@ void DataBase::showres() {
 bool DataBase::insertItem(const string &table, const string &value) {
   string str = "insert into " + table + " values " + value;
   if (mysql_query(sql, str.c_str())) {
-    cout << str + " error!" << endl;
+    if (_FZIDT_DB_DEBUG) {
+      cout << str + " error!" << endl;
+    }
 
     return false;
   }
@@ -394,7 +406,9 @@ bool DataBase::insertItem(const string &sentence) {
   string str = sentence;
   if (mysql_query(sql, str.c_str())) {
     // cout << "insert into " + table + " error!" << endl;
-    cout << str + " error!" << endl;
+    if (_FZIDT_DB_DEBUG) {
+      cout << str + " error!" << endl;
+    }
     return false;
   }
   if (_FZIDT_DB_DEBUG) {
@@ -410,7 +424,9 @@ bool DataBase::insertItem(const string &table, const string &value,
 
   if (mysql_query(sql, str.c_str())) {
     // cout << "insert into " + table + " error!" << endl;
-    cout << str + " error!" << endl;
+    if (_FZIDT_DB_DEBUG) {
+      cout << str + " error!" << endl;
+    }
     return false;
   }
   if (_FZIDT_DB_DEBUG) {
@@ -425,7 +441,9 @@ bool DataBase::deleteItem(const string &table, const string &value) {
 
   if (mysql_query(sql, str.c_str())) {
     // cout << "delete from " + table + " error!" << endl;
-    cout << str + " error!" << endl;
+    if (_FZIDT_DB_DEBUG) {
+      cout << str + " error!" << endl;
+    }
     return false;
   }
   if (_FZIDT_DB_DEBUG) {
@@ -438,7 +456,9 @@ bool DataBase::deleteItem(const string &table, const string &value) {
 bool DataBase::replaceItem(const string &table, const string &value) {
   string str = "replace " + table + " values" + value;
   if (mysql_query(sql, str.c_str())) {
-    cout << str + " error!" << endl;
+    if (_FZIDT_DB_DEBUG) {
+      cout << str + " error!" << endl;
+    }
     return false;
   }
   if (_FZIDT_DB_DEBUG) {
@@ -453,7 +473,9 @@ bool DataBase::updateItem(const string &table, const string &value,
 
   if (mysql_query(sql, str.c_str())) {
     // cout << "update " + table + " error!" << endl;
-    cout << str + " error!" << endl;
+    if (_FZIDT_DB_DEBUG) {
+      cout << str + " error!" << endl;
+    }
     return false;
   }
   if (_FZIDT_DB_DEBUG) {
