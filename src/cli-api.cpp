@@ -1,4 +1,4 @@
-#include "../lib/command.h"
+#include "../include/command.h"
 #include <iostream>
 using namespace std;
 

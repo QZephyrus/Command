@@ -1,2 +1,0 @@
-#!/bin/bash
-g++ ../src/cli-api.cpp ../src/command.cpp ../src/Compression_Trace_char.cpp ../src/DataBase.cpp -o cli-api -I/usr/include/python2.7 -lpython2.7 -lboost_date_time `mysql_config --cflags --libs` -Wall

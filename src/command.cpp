@@ -1,4 +1,4 @@
-#include "../lib/command.h"
+#include "../include/command.h"
 
 using namespace std;
 vector<point2> readTraceFromMysql(string host, string user, string passwd,

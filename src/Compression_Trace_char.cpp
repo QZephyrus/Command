@@ -1,4 +1,4 @@
-#include "../lib/Compression_Trace_char.h"
+#include "../include/Compression_Trace_char.h"
 
 string ptime_to_string(ptime t) {
   string time;
