@@ -68,6 +68,20 @@ restore(unordered_map<int, vector<point2>> comtrace_map, double time) {
 void saveToFile(string filename,
                 unordered_map<int, vector<point2>> comtrace_map) {
   fstream file;
+  string t = filename;
+  int pos = t.find_last_of('/', 0);
+  cout << filename << endl;
+  if (pos != -1) {
+    string path = filename.substr(0, pos);
+    char tmp[64] = {0};
+    if (0 != access(path.c_str(), F_OK)) {
+      snprintf(tmp, sizeof(tmp), "mkdir -p %s", path.c_str());
+      if (system(tmp) < 0) {
+        cout << "Can't create the filepath [" << path << "] !" << endl;
+        return;
+      }
+    }
+  }
   file.open(filename, ios::out | ios::binary);
   for (auto m : comtrace_map) {
     for (auto v : m.second) {

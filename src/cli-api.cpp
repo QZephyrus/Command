@@ -127,13 +127,14 @@ int main(int argc, char *argv[]) {
       } else if (strcmp(argv[j], "-d") == 0) {
         j++;
         if (j == argc) {
-          cout << "Lack Input time distance!" << endl;
+          cout << "Lack Input limit distance!" << endl;
           return 0;
         }
         stringstream sin(argv[j]);
         char c;
         if (!(sin >> dist) || sin >> c) {
-          cout << "Input time distance [" << argv[j] << "] not Number!" << endl;
+          cout << "Input limit distance [" << argv[j] << "] not Number!"
+               << endl;
           return 0;
         }
         // dist = atof(argv[j]);
@@ -153,8 +154,8 @@ int main(int argc, char *argv[]) {
       cout << "Database:" + DBName << endl;
       cout << "Table:" + TableName << endl;
       cout << "compression filename:" << FileName << endl;
-      cout << "compression distance:" << dist << endl;
-      cout << "compression time interval:" << time << " second" << endl;
+      cout << "compression limit distance:" << dist << endl;
+      cout << "compression time interval: " << time << " second" << endl;
       cout << "Should we continue compress(Y/N):";
       string temp;
       cin >> temp;
