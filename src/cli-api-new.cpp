@@ -41,7 +41,7 @@ int main(int argc, char const *argv[]) {
   string FileName;
   double dist = 10;
   double time = 2;
-  options_description opts("all iptions");
+  options_description opts("all options");
   variables_map vm;
   opts.add_options()("help,h", "Help message");
   opts.add_options()("compress,c", "Compression commands");
