@@ -14,8 +14,8 @@ bool Compression(string host, string user, string passwd, string DBName,
   }
   unordered_map<int, vector<point2>> comtrace = compression(trace, dist, time);
 
-  saveToFile(filename, comtrace);
-  return true;
+  bool flag = saveToFile(filename, comtrace);
+  return flag;
 };
 
 bool Restore(string host, string user, string passwd, string DBName,

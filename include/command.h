@@ -10,7 +10,7 @@ unordered_map<int, vector<point2>> compression(vector<point2> org_trace,
                                                double dist, double time);
 unordered_map<int, vector<point2>>
 restore(unordered_map<int, vector<point2>> comtrace_map, double time);
-void saveToFile(string filename,
+bool saveToFile(string filename,
                 unordered_map<int, vector<point2>> comtrace_map);
 unordered_map<int, vector<point2>> readFromFile(string filename);
 bool saveToMySQL(string host, string user, string passwd, string DBName,

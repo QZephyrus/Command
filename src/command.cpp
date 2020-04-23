@@ -65,22 +65,24 @@ restore(unordered_map<int, vector<point2>> comtrace_map, double time) {
   return restrace_map;
 }
 
-void saveToFile(string filename,
+bool saveToFile(string filename,
                 unordered_map<int, vector<point2>> comtrace_map) {
   fstream file;
-  string t = filename;
-  int pos = t.find_last_of('/', 0);
-  cout << filename << endl;
+  int pos = filename.find_last_of('/');
   if (pos != -1) {
     string path = filename.substr(0, pos);
     char tmp[64] = {0};
     if (0 != access(path.c_str(), F_OK)) {
       snprintf(tmp, sizeof(tmp), "mkdir -p %s", path.c_str());
-      if (system(tmp) < 0) {
-        cout << "Can't create the filepath [" << path << "] !" << endl;
-        return;
+      if (system(tmp) > 0) {
+        return false;
       }
     }
+  }
+  char tmp[64] = {0};
+  snprintf(tmp, sizeof(tmp), "touch %s", filename.c_str());
+  if (system(tmp) > 0) {
+    return false;
   }
   file.open(filename, ios::out | ios::binary);
   for (auto m : comtrace_map) {
@@ -89,7 +91,7 @@ void saveToFile(string filename,
     }
   }
   file.close();
-  return;
+  return true;
 }
 
 unordered_map<int, vector<point2>> readFromFile(string filename) {
